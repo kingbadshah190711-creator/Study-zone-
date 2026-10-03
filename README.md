@@ -1,4 +1,4 @@
-# STUDY_ZONE
+# STUDY_TRACKER
 
 Advanced offline-first student learning app built with HTML/CSS/JavaScript + Capacitor.
 
