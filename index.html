@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>STUDY_ZONE</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#111827;--muted:#6b7280;--primary:#4f46e5;--primary2:#7c3aed;--border:#e5e7eb;--good:#16a34a;--bad:#dc2626;--shadow:0 8px 28px rgba(17,24,39,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}button{border:0;cursor:pointer}.app{max-width:1100px;margin:auto;min-height:100vh;padding-bottom:85px}
+header{padding:18px 18px 8px;position:sticky;top:0;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(14px);z-index:10}
+.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:900;font-size:22px}.brand span{color:var(--primary)}
+.icon{width:42px;height:42px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);color:var(--text)}
+main{padding:10px 18px}.hero{padding:22px;border-radius:26px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:var(--shadow)}
+.hero h1{margin:0 0 6px;font-size:28px}.hero p{margin:0;opacity:.9}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin-top:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:17px;box-shadow:var(--shadow)}
+.stat{font-size:25px;font-weight:900}.muted{color:var(--muted);font-size:13px}.progress{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:9px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));border-radius:99px}
+.section{margin-top:22px}.section h2{font-size:18px;margin:0 0 12px}.subject-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.subject{min-height:125px;display:flex;flex-direction:column;justify-content:space-between}
+.subject b{font-size:17px}.emoji{font-size:30px}.list{display:grid;gap:10px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.btn{padding:11px 15px;border-radius:13px;background:var(--primary);color:#fff;font-weight:700}.btn.alt{background:var(--bg);color:var(--text);border:1px solid var(--border)}.btn.danger{background:var(--bad)}
+.bottom{position:fixed;bottom:0;left:0;right:0;z-index:20;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(18px);border-top:1px solid var(--border);display:flex;justify-content:center}
+.nav{max-width:1100px;width:100%;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 10px}.nav button{background:none;color:var(--muted);padding:7px 3px;font-size:11px}.nav button.active{color:var(--primary);font-weight:800}.nav .nicon{display:block;font-size:20px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;align-items:flex-end;z-index:50}.modal.show{display:flex}.sheet{width:100%;max-width:700px;margin:auto;background:var(--card);border-radius:26px 26px 0 0;padding:22px;max-height:90vh;overflow:auto}
+input,select{width:100%;padding:13px;border:1px solid var(--border);border-radius:13px;background:var(--card);color:var(--text);margin:6px 0 12px}
+.choice{padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--card);text-align:left;width:100%;margin:5px 0;color:var(--text)}.choice.correct{border-color:var(--good);background:#dcfce7}.choice.wrong{border-color:var(--bad);background:#fee2e2}
+.note{line-height:1.65}.badge{display:inline-block;padding:6px 9px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:700;margin:3px}
+.toast{position:fixed;left:50%;bottom:95px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 16px;border-radius:14px;display:none;z-index:80}.toast.show{display:block}
+.dark{--bg:#0b1020;--card:#111827;--text:#f9fafb;--muted:#9ca3af;--border:#263247;--shadow:0 8px 28px rgba(0,0,0,.25)}
+@media(min-width:700px){.grid,.subject-grid{grid-template-columns:repeat(4,1fr)}.hero{padding:30px}.sheet{border-radius:26px;margin-bottom:20px}.modal{align-items:center}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="top"><div class="brand">STUDY_<span>ZONE</span></div><button class="icon" onclick="toggleTheme()">🌙</button></div></header>
+<main id="view"></main>
+</div>
+<div class="bottom"><nav class="nav">
+<button data-page="home" onclick="go('home')"><span class="nicon">🏠</span>Home</button>
+<button data-page="learn" onclick="go('learn')"><span class="nicon">📚</span>Learn</button>
+<button data-page="quiz" onclick="go('quiz')"><span class="nicon">🧠</span>Quiz</button>
+<button data-page="progress" onclick="go('progress')"><span class="nicon">📊</span>Progress</button>
+<button data-page="profile" onclick="go('profile')"><span class="nicon">👤</span>Profile</button>
+</nav></div>
+<div id="modal" class="modal" onclick="if(event.target.id==='modal')closeModal()"><div class="sheet" id="sheet"></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+const DBKEY='study_zone_v1';
+const subjects=[
+{id:'science',name:'Science',icon:'🔬',chapters:[
+{id:'light',name:'Light',notes:'Light is a form of energy that enables us to see objects. Reflection is the bouncing back of light from a surface. The angle of incidence equals the angle of reflection for a plane mirror.',points:['Light travels in straight lines in a uniform medium.','Reflection follows the laws of reflection.','A plane mirror forms a virtual, erect image.']},
+{id:'life',name:'Life Processes',notes:'Life processes include nutrition, respiration, transport and excretion. These processes maintain the functioning of living organisms.',points:['Nutrition provides energy and materials.','Respiration releases usable energy.','Transport moves substances around the organism.']}]},
+{id:'math',name:'Mathematics',icon:'📐',chapters:[
+{id:'numbers',name:'Real Numbers',notes:'Real numbers include rational and irrational numbers. Euclid’s division algorithm is useful for finding the HCF of two positive integers.',points:['Every rational number can be written as p/q, q ≠ 0.','Irrational numbers cannot be expressed as p/q.']},
+{id:'algebra',name:'Polynomials',notes:'A polynomial is an algebraic expression made from variables and coefficients with non-negative integer powers.',points:['Degree is the highest power of the variable.','Zeros are values for which the polynomial becomes zero.']}]},
+{id:'english',name:'English',icon:'📖',chapters:[
+{id:'grammar',name:'Grammar Basics',notes:'A sentence is a group of words that expresses a complete thought. Parts of speech include nouns, pronouns, verbs, adjectives and adverbs.',points:['A verb expresses an action or state.','An adjective describes a noun or pronoun.']}]},
+{id:'social',name:'Social Science',icon:'🌍',chapters:[
+{id:'democracy',name:'Democracy',notes:'Democracy is a system in which people choose their representatives through elections. Democratic institutions are expected to be accountable and responsive.',points:['Citizens participate through elections.','Rights and institutions support participation.']}]},
+{id:'computer',name:'Computer',icon:'💻',chapters:[
+{id:'internet',name:'Internet Basics',notes:'The internet is a global network of interconnected computer networks. Web browsers retrieve resources using protocols such as HTTP and HTTPS.',points:['A browser is used to access websites.','HTTPS encrypts communication between browser and server.']}]},
+{id:'gk',name:'General Knowledge',icon:'🌟',chapters:[
+{id:'space',name:'Space',notes:'The Solar System contains the Sun and objects that orbit it, including planets, dwarf planets, moons, asteroids and comets.',points:['The Sun is a star.','Earth is the third planet from the Sun.']}]}
+];
+const questions=[
+{subject:'science',chapter:'light',q:'Which law states that the angle of incidence equals the angle of reflection?',o:['Law of refraction','Law of reflection','Ohm’s law','Newton’s law'],a:1,e:'This is one of the laws of reflection.'},
+{subject:'science',chapter:'life',q:'Which process releases usable energy from food?',o:['Respiration','Transpiration','Digestion only','Excretion'],a:0,e:'Cellular respiration releases usable energy.'},
+{subject:'math',chapter:'numbers',q:'Which type of number cannot be expressed as p/q?',o:['Integer','Rational','Irrational','Natural'],a:2,e:'Irrational numbers cannot be expressed as a ratio of integers.'},
+{subject:'math',chapter:'algebra',q:'What is the highest power of x in 4x³+2x?',o:['1','2','3','4'],a:2,e:'The highest exponent is 3.'},
+{subject:'english',chapter:'grammar',q:'Which part of speech describes a noun?',o:['Verb','Adjective','Conjunction','Preposition'],a:1,e:'An adjective describes or modifies a noun.'},
+{subject:'social',chapter:'democracy',q:'In a democracy, representatives are generally chosen by:',o:['Inheritance','Elections','Lottery only','Appointment by one person'],a:1,e:'Elections allow citizens to choose representatives.'},
+{subject:'computer',chapter:'internet',q:'Which protocol is commonly used for secure web communication?',o:['FTP','HTTP','HTTPS','SMTP'],a:2,e:'HTTPS provides encrypted HTTP communication.'},
+{subject:'gk',chapter:'space',q:'What is the Sun?',o:['Planet','Moon','Star','Asteroid'],a:2,e:'The Sun is a star at the center of our Solar System.'}
+];
+let state=JSON.parse(localStorage.getItem(DBKEY)||'null')||{profile:{name:'Student',className:'',favourites:[]},completed:[],bookmarks:[],results:[],tasks:[],studySeconds:0,streak:0,lastStudy:null,theme:'light',achievements:[]};
+function save(){localStorage.setItem(DBKEY,JSON.stringify(state))}
+function toast(s){const t=document.getElementById('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function toggleTheme(){state.theme=state.theme==='dark'?'light':'dark';document.body.classList.toggle('dark',state.theme==='dark');save()}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function allChapters(){return subjects.flatMap(s=>s.chapters.map(c=>({...c,subject:s})))}
+function pct(){return Math.round(state.completed.length/allChapters().length*100)||0}
+function go(page){window.location.hash=page;render(page)}
+function render(page=location.hash.slice(1)||'home'){
+document.body.classList.toggle('dark',state.theme==='dark');
+document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+const v=document.getElementById('view');
+if(page==='home')v.innerHTML=home();else if(page==='learn')v.innerHTML=learn();else if(page==='quiz')v.innerHTML=quizHome();else if(page==='progress')v.innerHTML=progress();else if(page==='profile')v.innerHTML=profile();else v.innerHTML=home();
+}
+function home(){let mins=Math.floor(state.studySeconds/60),recent=state.results.at(-1);
+return `<section class="hero"><div class="muted" style="color:#ddd">WELCOME BACK</div><h1>Hi, ${esc(state.profile.name)} 👋</h1><p>Ready to learn something new today?</p></section>
+<div class="grid">
+<div class="card"><div class="muted">Learning Progress</div><div class="stat">${pct()}%</div><div class="progress"><i style="width:${pct()}%"></i></div></div>
+<div class="card"><div class="muted">Study Time</div><div class="stat">${mins}m</div><div class="muted">Keep going!</div></div>
+<div class="card"><div class="muted">Quiz Attempts</div><div class="stat">${state.results.length}</div><div class="muted">Latest: ${recent?recent.score+'/'+recent.total:'—'}</div></div>
+<div class="card"><div class="muted">Streak</div><div class="stat">🔥 ${state.streak}</div><div class="muted">days</div></div></div>
+<div class="section"><h2>Quick Actions</h2><div class="grid">
+<button class="card" onclick="go('learn')">📚<br><b>Learn</b><br><span class="muted">Notes & chapters</span></button>
+<button class="card" onclick="startQuiz()">🧠<br><b>Quick Quiz</b><br><span class="muted">Test yourself</span></button>
+<button class="card" onclick="timer()">⏱️<br><b>Focus Timer</b><br><span class="muted">Study session</span></button>
+<button class="card" onclick="planner()">📅<br><b>Planner</b><br><span class="muted">Plan your day</span></button>
+</div></div>
+<div class="section"><h2>Subjects</h2><div class="subject-grid">${subjects.map(s=>`<button class="card subject" onclick="openSubject('${s.id}')"><span class="emoji">${s.icon}</span><b>${s.name}</b><span class="muted">${s.chapters.length} chapters</span></button>`).join('')}</div></div>`}
+function learn(){return `<div class="section"><h2>📚 Learn</h2><input id="search" placeholder="Search subjects or chapters..." oninput="filterLearn(this.value)"><div id="learnlist">${subjectList()}</div></div>`}
+function subjectList(){return subjects.map(s=>`<div class="card" style="margin-bottom:10px"><div class="row"><div><span class="emoji">${s.icon}</span> <b>${s.name}</b></div><span class="badge">${s.chapters.length} chapters</span></div><div class="list" style="margin-top:12px">${s.chapters.map(c=>`<button class="btn alt row" onclick="openChapter('${s.id}','${c.id}')"><span>${c.name}</span><span>›</span></button>`).join('')}</div></div>`).join('')}
+function filterLearn(q){q=q.toLowerCase();document.getElementById('learnlist').innerHTML=subjects.map(s=>({...s,chapters:s.chapters.filter(c=>s.name.toLowerCase().includes(q)||c.name.toLowerCase().includes(q))})).filter(s=>s.name.toLowerCase().includes(q)||s.chapters.length).map(s=>`<div class="card" style="margin-bottom:10px"><b>${s.icon} ${s.name}</b><div class="list" style="margin-top:10px">${s.chapters.map(c=>`<button class="btn alt row" onclick="openChapter('${s.id}','${c.id}')"><span>${c.name}</span><span>›</span></button>`).join('')}</div></div>`).join('')||'<div class="card">No results found.</div>'}
+function openSubject(id){go('learn');setTimeout(()=>{const s=subjects.find(x=>x.id===id);toast(s.name)},0)}
+function openChapter(sid,cid){const s=subjects.find(x=>x.id===sid),c=s.chapters.find(x=>x.id===cid),key=sid+'/'+cid,done=state.completed.includes(key),bm=state.bookmarks.includes(key);
+openModal(`<div class="row"><h2>${s.icon} ${c.name}</h2><button class="icon" onclick="closeModal()">✕</button></div><span class="badge">${s.name}</span><article class="note"><p>${c.notes}</p><h3>Important Points</h3><ul>${c.points.map(x=>`<li>${x}</li>`).join('')}</ul><h3>Quick Revision</h3><p>${c.points.join(' • ')}</p></article><div class="row"><button class="btn ${done?'alt':''}" onclick="toggleComplete('${key}')">${done?'✓ Completed':'Mark Complete'}</button><button class="btn alt" onclick="toggleBookmark('${key}')">${bm?'🔖 Saved':'🔖 Bookmark'}</button></div><button class="btn" style="width:100%;margin-top:10px" onclick="startQuiz('${sid}','${cid}')">🧠 Practice this chapter</button>`)}
+function toggleComplete(key){state.completed=state.completed.includes(key)?state.completed.filter(x=>x!==key):[...state.completed,key];updateStreak();save();closeModal();render();toast('Progress updated')}
+function toggleBookmark(key){state.bookmarks=state.bookmarks.includes(key)?state.bookmarks.filter(x=>x!==key):[...state.bookmarks,key];save();toast(state.bookmarks.includes(key)?'Bookmarked':'Bookmark removed');}
+function updateStreak(){let d=new Date().toISOString().slice(0,10);if(state.lastStudy!==d){state.streak=(state.streak||0)+1;state.lastStudy=d}}
+function quizHome(){return `<div class="section"><h2>🧠 Quiz Center</h2><div class="card"><p>Choose a subject or start a mixed practice quiz.</p><div class="list">${subjects.map(s=>`<button class="btn alt row" onclick="startQuiz('${s.id}')"><span>${s.icon} ${s.name}</span><span>Start ›</span></button>`).join('')}</div><button class="btn" style="width:100%;margin-top:12px" onclick="startQuiz()">🎯 Mixed Quiz</button></div><div class="section"><h2>Recent Results</h2>${state.results.slice(-5).reverse().map(r=>`<div class="card row"><span>${r.label}</span><b>${r.score}/${r.total} (${Math.round(r.score/r.total*100)}%)</b></div>`).join('')||'<div class="card muted">No quiz attempts yet.</div>'}</div>`}
+let quizState=null;
+function startQuiz(sid=null,cid=null){let qs=questions.filter(q=>(!sid||q.subject===sid)&&(!cid||q.chapter===cid));qs=[...qs].sort(()=>Math.random()-.5).slice(0,Math.min(5,qs.length));if(!qs.length){toast('No questions available');return}quizState={qs,i:0,score:0,answered:false};showQuiz()}
+function showQuiz(){const q=quizState.qs[quizState.i];openModal(`<div class="row"><b>Question ${quizState.i+1}/${quizState.qs.length}</b><button class="icon" onclick="closeModal()">✕</button></div><div class="progress"><i style="width:${quizState.i/quizState.qs.length*100}%"></i></div><h2>${esc(q.q)}</h2>${q.o.map((o,i)=>`<button class="choice" id="opt${i}" onclick="answer(${i})">${esc(o)}</button>`).join('')}<div id="explain"></div>`)}
+function answer(i){if(quizState.answered)return;quizState.answered=true;const q=quizState.qs[quizState.i],ok=i===q.a;if(ok)quizState.score++;document.querySelectorAll('.choice').forEach((b,n)=>{if(n===q.a)b.classList.add('correct');if(n===i&&!ok)b.classList.add('wrong')});document.getElementById('explain').innerHTML=`<div class="card" style="margin-top:12px"><b>${ok?'Correct!':'Not quite.'}</b><p class="muted">${q.e}</p></div><button class="btn" style="width:100%" onclick="nextQuestion()">${quizState.i+1===quizState.qs.length?'See Result':'Next Question'}</button>`}
+function nextQuestion(){quizState.i++;if(quizState.i>=quizState.qs.length){let r={score:quizState.score,total:quizState.qs.length,label:'Quiz',date:new Date().toISOString()};state.results.push(r);updateStreak();save();openModal(`<div style="text-align:center"><div style="font-size:60px">🏆</div><h1>${r.score}/${r.total}</h1><h2>${Math.round(r.score/r.total*100)}% Accuracy</h2><p class="muted">Great work. Review your weak topics and try again.</p><button class="btn" onclick="closeModal();go('quiz')">Done</button></div>`)}else{quizState.answered=false;showQuiz()}}
+function progress(){let mins=Math.floor(state.studySeconds/60);return `<div class="section"><h2>📊 Your Progress</h2><div class="card"><div class="row"><b>Overall completion</b><b>${pct()}%</b></div><div class="progress"><i style="width:${pct()}%"></i></div></div><div class="grid">${subjects.map(s=>{let done=s.chapters.filter(c=>state.completed.includes(s.id+'/'+c.id)).length,p=Math.round(done/s.chapters.length*100);return `<div class="card"><b>${s.icon} ${s.name}</b><div class="stat">${p}%</div><div class="progress"><i style="width:${p}%"></i></div><span class="muted">${done}/${s.chapters.length} chapters</span></div>`}).join('')}</div><div class="section"><h2>Achievements</h2><div class="card">${achievements()}</div></div><div class="section"><h2>Study Statistics</h2><div class="card"><p>⏱ Total study time: <b>${mins} minutes</b></p><p>🧠 Quizzes: <b>${state.results.length}</b></p><p>🔥 Current streak: <b>${state.streak} days</b></p><p>🔖 Bookmarks: <b>${state.bookmarks.length}</b></p></div></div></div>`}
+function achievements(){let a=[];if(state.results.length)a.push('🏆 First Quiz');if(state.results.length>=5)a.push('🏆 5 Quizzes');if(state.completed.length>=3)a.push('📚 3 Chapters');if(state.completed.length>=10)a.push('📚 10 Chapters');if(state.streak>=7)a.push('🔥 7 Day Streak');return a.length?a.map(x=>`<span class="badge">${x}</span>`).join(''):'<span class="muted">Complete quizzes and chapters to unlock badges.</span>'}
+function profile(){return `<div class="section"><h2>👤 Profile</h2><div class="card"><label>Name</label><input id="pname" value="${esc(state.profile.name)}"><label>Class</label><input id="pclass" value="${esc(state.profile.className)}"><button class="btn" onclick="saveProfile()">Save Profile</button></div><div class="section"><h2>Settings</h2><div class="card list"><button class="btn alt" onclick="toggleTheme()">🌙 Toggle Theme</button><button class="btn alt" onclick="timer()">⏱ Focus Timer</button><button class="btn alt" onclick="planner()">📅 Study Planner</button><button class="btn danger" onclick="resetApp()">Reset App Data</button></div></div></div>`}
+function saveProfile(){state.profile.name=document.getElementById('pname').value||'Student';state.profile.className=document.getElementById('pclass').value;save();render();toast('Profile saved')}
+function timer(){let sec=25*60,running=false,int;openModal(`<h2>⏱ Focus Timer</h2><div style="text-align:center;font-size:58px;font-weight:900" id="clock">25:00</div><div class="row"><button class="btn" id="startT">Start</button><button class="btn alt" onclick="closeModal()">Close</button></div>`);document.getElementById('startT').onclick=()=>{if(running)return;running=true;int=setInterval(()=>{sec--;document.getElementById('clock').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;if(sec<=0){clearInterval(int);state.studySeconds+=1500;updateStreak();save();toast('Study session completed!');}},1000)}}
+function planner(){openModal(`<h2>📅 Study Planner</h2><input id="task" placeholder="Task e.g. Revise Light"><input id="duration" type="number" placeholder="Minutes"><button class="btn" onclick="addTask()">Add Task</button><div class="section">${state.tasks.map((t,i)=>`<div class="card row"><span>${t.done?'✅':'⬜'} ${esc(t.name)}<br><small>${t.duration} min</small></span><button class="btn alt" onclick="finishTask(${i})">${t.done?'Done':'Complete'}</button></div>`).join('')||'<p class="muted">No tasks yet.</p>'}</div>`)}
+function addTask(){let name=document.getElementById('task').value,d=Number(document.getElementById('duration').value)||25;if(!name)return toast('Enter a task');state.tasks.push({name,duration:d,done:false});save();planner()}
+function finishTask(i){state.tasks[i].done=!state.tasks[i].done;save();planner()}
+function openModal(html){document.getElementById('sheet').innerHTML=html;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function resetApp(){if(confirm('Reset all STUDY_ZONE data?')){localStorage.removeItem(DBKEY);location.reload()}}
+window.addEventListener('hashchange',()=>render());
+render();
+</script>
+</body>
+</html>

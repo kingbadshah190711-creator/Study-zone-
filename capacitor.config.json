@@ -1,0 +1,6 @@
+{
+  "appId": "com.studyzone.app",
+  "appName": "STUDY_ZONE",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
